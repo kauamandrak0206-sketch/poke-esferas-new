@@ -937,29 +937,40 @@
 // ===== JSONBIN CONFIG =====
 const JSONBIN_API_KEY = '$2a$10$L2l9q0oFD3CwSvsqi9niu.h9U9Eym7P49X9Zz49wCEqtZwgMwg1jS';
 const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
-let binId = null; // will be set after first load or creation
+// Após o primeiro login, um ID será criado e exibido no console (F12).
+// Cole esse ID aqui para que TODOS os amigos usem o mesmo banco de dados:
+let BIN_ID_FIXO = '';
 
 // ===== STATE =====
 let currentUser = null;
-let allData = {}; // { username: { sheetData } }
+let allData = {};
+let binId = null;
 
 // ===== JSONBIN HELPERS =====
 async function jsonbinLoad() {
-  // Try to get stored bin ID from localStorage (just the ID, not the data)
-  const storedBinId = localStorage.getItem('poke-bin-id');
-  if (storedBinId) {
-    binId = storedBinId;
+  if (BIN_ID_FIXO) {
+    binId = BIN_ID_FIXO;
+    localStorage.setItem('poke-bin-id', binId);
+  } else {
+    const stored = localStorage.getItem('poke-bin-id');
+    if (stored) binId = stored;
+  }
+
+  if (binId) {
     try {
       const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, {
-        headers: { 'X-Master-Key': JSONBIN_API_KEY }
+        headers: {
+          'X-Master-Key': JSONBIN_API_KEY,
+          'X-Bin-Meta': 'false'
+        }
       });
       if (res.ok) {
         const json = await res.json();
-        return json.record || {};
+        return (typeof json === 'object' && json !== null) ? json : {};
       }
     } catch(e) {}
   }
-  // No bin yet — create one
+
   return await jsonbinCreate();
 }
 
@@ -975,11 +986,16 @@ async function jsonbinCreate() {
       },
       body: JSON.stringify({})
     });
+    if (!res.ok) throw new Error('Erro ' + res.status);
     const json = await res.json();
     binId = json.metadata.id;
     localStorage.setItem('poke-bin-id', binId);
+    console.log('%c✅ Bin criado com sucesso! Copie o ID abaixo e cole em BIN_ID_FIXO no código:', 'color:green;font-weight:bold;font-size:14px');
+    console.log('%c' + binId, 'color:#e53935;font-size:18px;font-weight:bold');
+    showToast('☁️ Banco criado! Veja o console (F12) para o ID.');
     return {};
   } catch(e) {
+    console.error('JSONBin create error:', e);
     showToast('❌ Erro ao conectar com o servidor.', true);
     return {};
   }
@@ -988,7 +1004,7 @@ async function jsonbinCreate() {
 async function jsonbinSave(data) {
   if (!binId) return;
   try {
-    await fetch(`${JSONBIN_BASE}/b/${binId}`, {
+    const res = await fetch(`${JSONBIN_BASE}/b/${binId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -996,7 +1012,9 @@ async function jsonbinSave(data) {
       },
       body: JSON.stringify(data)
     });
+    if (!res.ok) throw new Error('Erro ' + res.status);
   } catch(e) {
+    console.error('JSONBin save error:', e);
     showToast('❌ Erro ao salvar na nuvem.', true);
   }
 }
@@ -1009,14 +1027,11 @@ async function doLogin() {
     return;
   }
 
-  // Show loading state
   const btn = document.querySelector('.login-btn');
   btn.textContent = '⏳ Carregando...';
   btn.disabled = true;
 
   currentUser = name;
-
-  // Load all data from JSONBin
   allData = await jsonbinLoad();
 
   document.getElementById('login-page').style.display = 'none';
