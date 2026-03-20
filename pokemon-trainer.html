@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fichas de Treinadores - Segredo das Poké Esferas</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap');
+
+  :root {
+    --red: #e53935;
+    --blue: #1565c0;
+    --gold: #f9a825;
+    --dark: #1a1a2e;
+    --light-bg: #f0f4ff;
+    --border: #c5cae9;
+    --table-header: #3949ab;
+    --text-dark: #1a237e;
+    --cell-bg: #ffffff;
+    --desc-color: #e53935;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Exo 2', sans-serif;
+    background: #e8ecf5;
+    min-height: 100vh;
+  }
+
+  /* ===== LOGIN PAGE ===== */
+  #login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 60% 40%, #1a237e 0%, #0d0d1a 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #login-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='25' fill='none' stroke='rgba(255,255,255,0.04)' stroke-width='1'/%3E%3Ccircle cx='30' cy='30' r='15' fill='none' stroke='rgba(255,255,255,0.04)' stroke-width='1'/%3E%3Cline x1='5' y1='30' x2='55' y2='30' stroke='rgba(255,255,255,0.04)' stroke-width='1'/%3E%3C/svg%3E") repeat;
+  }
+
+  .login-box {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 50px 45px;
+    width: 380px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+
+  .pokeball-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px;
+    position: relative;
+  }
+
+  .pokeball-icon svg { width: 100%; height: 100%; }
+
+  .login-title {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .login-subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+    color: #fff;
+    font-weight: 700;
+    margin-bottom: 35px;
+  }
+
+  .login-label {
+    display: block;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 8px;
+  }
+
+  .login-input {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: #fff;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 15px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
+    outline: none;
+  }
+
+  .login-input:focus { border-color: var(--gold); }
+
+  .login-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #e53935, #c62828);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 5px;
+    text-transform: uppercase;
+  }
+
+  .login-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(229,57,53,0.4); }
+
+  .login-error {
+    color: #ff6b6b;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .welcome-text {
+    margin-bottom: 28px;
+    line-height: 1.3;
+  }
+
+  .welcome-greeting {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .welcome-title {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 19px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #FFD700;
+    -webkit-text-stroke: 1.5px #1a1a00;
+    text-shadow:
+      2px 2px 0px #b8860b,
+      -1px -1px 0px #b8860b,
+      1px -1px 0px #b8860b,
+      -1px  1px 0px #b8860b,
+      0 0 18px rgba(255, 215, 0, 0.5);
+    line-height: 1.3;
+  }
+
+  .welcome-title .highlight {
+    color: #fff;
+    -webkit-text-stroke: 1.5px #1a1a2e;
+    text-shadow:
+      2px 2px 0px #3949ab,
+      -1px -1px 0px #3949ab,
+      1px -1px 0px #3949ab,
+      -1px  1px 0px #3949ab,
+      0 0 18px rgba(100, 130, 255, 0.5);
+  }
+
+  .welcome-divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #e53935, #FFD700, #1565c0);
+    border-radius: 2px;
+    margin: 10px auto 0;
+  }
+
+  /* ===== MAIN APP ===== */
+  #app-page { display: none; }
+
+  .app-header {
+    background: linear-gradient(135deg, #1a237e, #283593);
+    padding: 12px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .app-header-title {
+    font-family: 'Cinzel', serif;
+    color: #fff;
+    font-size: 15px;
+    letter-spacing: 2px;
+  }
+
+  .header-user {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .btn-logout {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 6px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+  .btn-logout:hover { background: rgba(255,255,255,0.2); }
+
+  .action-bar {
+    background: #fff;
+    border-bottom: 1px solid #dde;
+    padding: 10px 30px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-save {
+    background: #1565c0;
+    color: #fff;
+  }
+  .btn-save:hover { background: #0d47a1; transform: translateY(-1px); }
+
+  .btn-pdf {
+    background: #c62828;
+    color: #fff;
+  }
+  .btn-pdf:hover { background: #b71c1c; transform: translateY(-1px); }
+
+  .btn-new {
+    background: #2e7d32;
+    color: #fff;
+  }
+  .btn-new:hover { background: #1b5e20; }
+
+  .save-status {
+    font-size: 12px;
+    color: #4caf50;
+    display: none;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* Users list sidebar */
+  .users-bar {
+    background: #fff;
+    border-bottom: 2px solid #e0e0e0;
+    padding: 8px 30px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .users-bar-label {
+    font-size: 11px;
+    color: #888;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-right: 5px;
+  }
+
+  .user-chip {
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: #e8eaf6;
+    color: #3949ab;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .user-chip.active { border-color: #3949ab; background: #3949ab; color: #fff; }
+  .user-chip:hover { background: #c5cae9; }
+
+  .user-chip-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .user-chip-wrap .user-chip {
+    border-radius: 20px 0 0 20px;
+    border-right: none;
+    padding-right: 10px;
+  }
+
+  .user-chip-wrap.active .user-chip {
+    border-radius: 20px 0 0 20px;
+  }
+
+  .chip-delete {
+    background: #e8eaf6;
+    border: 2px solid transparent;
+    border-left: 1px solid #c5cae9;
+    color: #999;
+    padding: 4px 8px;
+    border-radius: 0 20px 20px 0;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    transition: all 0.2s;
+    font-weight: 700;
+  }
+
+  .chip-delete:hover { background: #e53935; color: #fff; border-color: #e53935; }
+
+  .user-chip-wrap.active .chip-delete {
+    background: #3949ab;
+    border-color: #3949ab;
+    border-left-color: rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.7);
+  }
+
+  .user-chip-wrap.active .chip-delete:hover { background: #e53935; border-color: #e53935; color: #fff; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+
+  .modal-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 35px 40px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-width: 360px;
+    width: 90%;
+    transform: scale(0.9);
+    transition: transform 0.2s;
+  }
+
+  .modal-overlay.show .modal-box { transform: scale(1); }
+
+  .modal-icon { font-size: 40px; margin-bottom: 12px; }
+
+  .modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    color: #1a237e;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  .modal-desc {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 25px;
+    line-height: 1.5;
+  }
+
+  .modal-desc strong { color: #e53935; }
+
+  .modal-btns { display: flex; gap: 10px; justify-content: center; }
+
+  .modal-btn {
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .modal-btn-cancel { background: #e0e0e0; color: #555; }
+  .modal-btn-cancel:hover { background: #ccc; }
+  .modal-btn-confirm { background: #e53935; color: #fff; }
+  .modal-btn-confirm:hover { background: #b71c1c; }
+
+  /* ===== SHEET CONTAINER ===== */
+  .sheet-container {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ===== THE FORM SHEET ===== */
+  #trainer-sheet {
+    background: #f5f7ff;
+    border: 1px solid #c5cae9;
+    border-radius: 8px;
+    padding: 25px;
+    font-family: Arial, sans-serif;
+  }
+
+  .sheet-main-title {
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    color: #1565c0;
+    font-size: 20px;
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+
+  .sheet-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr 220px;
+    gap: 15px;
+    align-items: start;
+  }
+
+  /* Left column */
+  .left-col {}
+
+  .trainer-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 210px;
+    background: #1a1a2e;
+    border: 2px solid #555;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+
+  .trainer-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .img-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    gap: 6px;
+  }
+
+  .trainer-img-wrap:hover .img-overlay { opacity: 1; }
+  .img-overlay svg { width: 28px; height: 28px; }
+
+  #img-file-input { display: none; }
+
+  .field-group {
+    margin-bottom: 14px;
+  }
+
+  .field-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a237e;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .field-input {
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid #9fa8da;
+    background: transparent;
+    padding: 5px 0;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 14px;
+    color: #1a237e;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field-input:focus { border-color: #1565c0; }
+
+  .history-box {
+    background: #e8eaf6;
+    border: 1px solid #9fa8da;
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 8px;
+  }
+
+  .history-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #e53935;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 6px;
+  }
+
+  .history-textarea {
+    width: 100%;
+    min-height: 130px;
+    background: transparent;
+    border: none;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 12px;
+    color: #333;
+    resize: vertical;
+    outline: none;
+  }
+
+  .history-footer {
+    font-size: 10px;
+    color: #e53935;
+    margin-top: 5px;
+    font-style: italic;
+  }
+
+  /* Middle column - Team table */
+  .mid-col {}
+
+  .poke-table-wrap {
+    border: 1px solid #9fa8da;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .poke-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .poke-table thead tr {
+    background: #3949ab;
+    color: #fff;
+  }
+
+  .poke-table thead th {
+    padding: 7px 10px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .poke-table thead th.header-title {
+    background: #283593;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 2px;
+  }
+
+  .poke-table thead th.hp-col { color: #ff8a80; }
+
+  .poke-table tbody tr { background: #fff; }
+  .poke-table tbody tr:nth-child(even) { background: #f3f4ff; }
+
+  .poke-table td {
+    padding: 0;
+    border-bottom: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+  }
+
+  .poke-table td:last-child { border-right: none; }
+
+  .poke-table td input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 7px 8px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 12px;
+    color: #333;
+    outline: none;
+    text-align: center;
+  }
+
+  .poke-table td input:focus { background: #fffde7; }
+
+  /* Skill sections */
+  .skill-section {
+    border: 1px solid #9fa8da;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .skill-header {
+    background: #3949ab;
+    color: #fff;
+    padding: 5px 10px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .skill-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fff;
+  }
+
+  .skill-row:last-child { border-bottom: none; }
+  .skill-row:nth-child(even) { background: #f3f4ff; }
+
+  .skill-name {
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1a237e;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .skill-desc {
+    padding: 0;
+  }
+
+  .skill-desc input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 6px 10px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 12px;
+    color: #e53935;
+    outline: none;
+  }
+
+  .skill-desc input:focus { background: #fffde7; }
+
+  /* Right column - PC box */
+  .right-col {}
+
+  .pc-table-wrap {
+    border: 1px solid #9fa8da;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .pc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .pc-table thead tr {
+    background: #546e7a;
+    color: #fff;
+  }
+
+  .pc-table thead th {
+    padding: 6px 6px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .pc-table thead th.header-title {
+    background: #37474f;
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+
+  .pc-table tbody tr { background: #fff; }
+  .pc-table tbody tr:nth-child(even) { background: #f5f5f5; }
+
+  .pc-table td {
+    padding: 0;
+    border-bottom: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+  }
+
+  .pc-table td:last-child { border-right: none; }
+
+  .pc-table td input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 5px 4px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 11px;
+    color: #333;
+    outline: none;
+    text-align: center;
+  }
+
+  .pc-table td input:focus { background: #fffde7; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #2e7d32;
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 9999;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { background: #c62828; }
+
+  @media print {
+    .app-header, .action-bar, .users-bar { display: none !important; }
+    .sheet-container { padding: 0; }
+    #trainer-sheet { border: none; }
+    .img-overlay { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="pokeball-icon">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="48" fill="#fff" stroke="#222" stroke-width="3"/>
+        <path d="M2 50 Q2 2 50 2 Q98 2 98 50Z" fill="#e53935"/>
+        <rect x="2" y="47" width="96" height="6" fill="#222"/>
+        <circle cx="50" cy="50" r="14" fill="#fff" stroke="#222" stroke-width="3"/>
+        <circle cx="50" cy="50" r="7" fill="#f5f5f5"/>
+      </svg>
+    </div>
+    <div class="login-title">Segredo das</div>
+    <div class="login-subtitle">Poké Esferas</div>
+
+    <div class="welcome-text">
+      <div class="welcome-greeting">Olá, Treinador — bem-vindo ao</div>
+      <div class="welcome-title">RPG Segredo das<br><span class="highlight">Poké Esferas</span></div>
+      <div class="welcome-divider"></div>
+    </div>
+
+    <label class="login-label">Nome do Treinador</label>
+    <input class="login-input" id="login-username" type="text" placeholder="Ex: Ash Ketchum" autocomplete="off" />
+    <button class="login-btn" onclick="doLogin()">⚡ ENTRAR NA AVENTURA</button>
+    <div class="login-error" id="login-error">Digite seu nome de treinador!</div>
+  </div>
+</div>
+
+<!-- APP PAGE -->
+<div id="app-page">
+  <div class="app-header">
+    <div class="app-header-title">🎴 FICHAS DE TREINADORES — SEGREDO DAS POKÉ ESFERAS</div>
+    <div class="header-user">
+      <span id="header-username"></span>
+      <button class="btn-logout" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <button class="btn-action btn-save" onclick="saveSheet()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Salvar Ficha
+    </button>
+    <button class="btn-action btn-pdf" onclick="exportPDF()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Exportar PDF
+    </button>
+    <button class="btn-action btn-new" onclick="newSheet()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nova Ficha
+    </button>
+    <div class="save-status" id="save-status">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Salvo!
+    </div>
+  </div>
+
+  <div class="users-bar" id="users-bar">
+    <span class="users-bar-label">Fichas:</span>
+    <div id="users-chips"></div>
+  </div>
+
+  <div class="sheet-container">
+    <div id="trainer-sheet">
+      <div class="sheet-main-title">FICHAS DE TREINADORES - SEGREDO DAS POKÉ ESFERAS</div>
+
+      <div class="sheet-grid">
+        <!-- LEFT COLUMN -->
+        <div class="left-col">
+          <!-- Trainer image -->
+          <div class="trainer-img-wrap" onclick="document.getElementById('img-file-input').click()">
+            <img id="trainer-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='210' viewBox='0 0 300 210'%3E%3Crect width='300' height='210' fill='%231a1a2e'/%3E%3Ccircle cx='150' cy='70' r='30' fill='%23666'/%3E%3Cellipse cx='150' cy='155' rx='50' ry='60' fill='%23555'/%3E%3Ctext x='150' y='200' text-anchor='middle' fill='%23888' font-size='11' font-family='Arial'%3EClique para trocar imagem%3C/text%3E%3C/svg%3E" alt="Treinador" />
+            <div class="img-overlay">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Trocar Imagem
+            </div>
+          </div>
+          <input type="file" id="img-file-input" accept="image/*" onchange="changeImage(event)">
+
+          <div class="field-group">
+            <div class="field-label">🔴 NOME DO TREINADOR:</div>
+            <input class="field-input" id="trainer-name" type="text" placeholder="..." />
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">📅 IDADE:</div>
+            <input class="field-input" id="trainer-age" type="text" placeholder="..." />
+          </div>
+
+          <div class="history-box">
+            <div class="history-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+              HISTÓRIA DO PERSONAGEM
+            </div>
+            <textarea class="history-textarea" id="trainer-history" placeholder="Escreva a história do personagem aqui..."></textarea>
+            <div class="history-footer">ASS. MESTRE: _______________</div>
+          </div>
+        </div>
+
+        <!-- MIDDLE COLUMN -->
+        <div class="mid-col">
+          <!-- Team table -->
+          <div class="poke-table-wrap">
+            <table class="poke-table">
+              <thead>
+                <tr><th colspan="3" class="header-title">POKÉMONS NO TIME</th></tr>
+                <tr>
+                  <th>NOMES</th>
+                  <th>LEVEL</th>
+                  <th class="hp-col">HP</th>
+                </tr>
+              </thead>
+              <tbody id="team-tbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Skills for 6 pokemon -->
+          <div id="skills-container"></div>
+        </div>
+
+        <!-- RIGHT COLUMN - PC box -->
+        <div class="right-col">
+          <div class="pc-table-wrap">
+            <table class="pc-table">
+              <thead>
+                <tr><th colspan="3" class="header-title">POKÉMON NO PC</th></tr>
+                <tr>
+                  <th>NOMES</th>
+                  <th>LEVEL</th>
+                  <th style="color:#ff8a80">HP</th>
+                </tr>
+              </thead>
+              <tbody id="pc-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal-box">
+    <div class="modal-icon">🗑️</div>
+    <div class="modal-title">Deletar Ficha</div>
+    <div class="modal-desc">Tem certeza que quer deletar a ficha de <strong id="modal-username"></strong>? Esta ação não pode ser desfeita.</div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancelar</button>
+      <button class="modal-btn modal-btn-confirm" onclick="confirmDelete()">Deletar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== JSONBIN CONFIG =====
+const JSONBIN_API_KEY = '$2a$10$L2l9q0oFD3CwSvsqi9niu.h9U9Eym7P49X9Zz49wCEqtZwgMwg1jS';
+const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
+let binId = null; // will be set after first load or creation
+
+// ===== STATE =====
+let currentUser = null;
+let allData = {}; // { username: { sheetData } }
+
+// ===== JSONBIN HELPERS =====
+async function jsonbinLoad() {
+  // Try to get stored bin ID from localStorage (just the ID, not the data)
+  const storedBinId = localStorage.getItem('poke-bin-id');
+  if (storedBinId) {
+    binId = storedBinId;
+    try {
+      const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, {
+        headers: { 'X-Master-Key': JSONBIN_API_KEY }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.record || {};
+      }
+    } catch(e) {}
+  }
+  // No bin yet — create one
+  return await jsonbinCreate();
+}
+
+async function jsonbinCreate() {
+  try {
+    const res = await fetch(`${JSONBIN_BASE}/b`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_API_KEY,
+        'X-Bin-Name': 'poke-esferas',
+        'X-Bin-Private': 'false'
+      },
+      body: JSON.stringify({})
+    });
+    const json = await res.json();
+    binId = json.metadata.id;
+    localStorage.setItem('poke-bin-id', binId);
+    return {};
+  } catch(e) {
+    showToast('❌ Erro ao conectar com o servidor.', true);
+    return {};
+  }
+}
+
+async function jsonbinSave(data) {
+  if (!binId) return;
+  try {
+    await fetch(`${JSONBIN_BASE}/b/${binId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_API_KEY
+      },
+      body: JSON.stringify(data)
+    });
+  } catch(e) {
+    showToast('❌ Erro ao salvar na nuvem.', true);
+  }
+}
+
+// ===== LOGIN =====
+async function doLogin() {
+  const name = document.getElementById('login-username').value.trim();
+  if (!name) {
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+
+  // Show loading state
+  const btn = document.querySelector('.login-btn');
+  btn.textContent = '⏳ Carregando...';
+  btn.disabled = true;
+
+  currentUser = name;
+
+  // Load all data from JSONBin
+  allData = await jsonbinLoad();
+
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app-page').style.display = 'block';
+  document.getElementById('header-username').textContent = '👤 ' + name;
+  btn.textContent = '⚡ ENTRAR NA AVENTURA';
+  btn.disabled = false;
+
+  buildTable();
+  loadSheet(currentUser);
+  renderUserChips();
+}
+
+document.getElementById('login-username').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+async function doLogout() {
+  await saveSheet(true);
+  currentUser = null;
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('app-page').style.display = 'none';
+  document.getElementById('login-username').value = '';
+}
+
+// ===== BUILD TABLE ROWS =====
+function buildTable() {
+  // Team (6 rows)
+  const tbody = document.getElementById('team-tbody');
+  tbody.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" class="team-name" data-i="${i}" placeholder="" /></td>
+      <td><input type="text" class="team-level" data-i="${i}" placeholder="" /></td>
+      <td><input type="text" class="team-hp" data-i="${i}" placeholder="" /></td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  // Skills (6 pokemon, 4 skills each)
+  const sc = document.getElementById('skills-container');
+  sc.innerHTML = '';
+  for (let p = 0; p < 6; p++) {
+    const div = document.createElement('div');
+    div.className = 'skill-section';
+    let rows = '';
+    for (let s = 0; s < 4; s++) {
+      rows += `
+        <div class="skill-row">
+          <div class="skill-name">HABILIDADE ${s+1}</div>
+          <div class="skill-desc"><input type="text" class="skill-input" data-p="${p}" data-s="${s}" placeholder="descrição" /></div>
+        </div>`;
+    }
+    div.innerHTML = `
+      <div class="skill-header">HABILIDADES DO POKEMON</div>
+      ${rows}`;
+    sc.appendChild(div);
+  }
+
+  // PC box (20 rows)
+  const pcTbody = document.getElementById('pc-tbody');
+  pcTbody.innerHTML = '';
+  for (let i = 0; i < 20; i++) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" class="pc-name" data-i="${i}" placeholder="" /></td>
+      <td><input type="text" class="pc-level" data-i="${i}" placeholder="" /></td>
+      <td><input type="text" class="pc-hp" data-i="${i}" placeholder="" /></td>
+    `;
+    pcTbody.appendChild(tr);
+  }
+
+  // Sync pokemon names to skill headers (no longer needed)
+}
+
+// ===== SAVE / LOAD =====
+function getSheetData() {
+  const team = [];
+  for (let i = 0; i < 6; i++) {
+    team.push({
+      name: document.querySelector(`.team-name[data-i="${i}"]`)?.value || '',
+      level: document.querySelector(`.team-level[data-i="${i}"]`)?.value || '',
+      hp: document.querySelector(`.team-hp[data-i="${i}"]`)?.value || '',
+    });
+  }
+  const skills = [];
+  for (let p = 0; p < 6; p++) {
+    const pSkills = [];
+    for (let s = 0; s < 4; s++) {
+      pSkills.push(document.querySelector(`.skill-input[data-p="${p}"][data-s="${s}"]`)?.value || '');
+    }
+    skills.push(pSkills);
+  }
+  const pc = [];
+  for (let i = 0; i < 20; i++) {
+    pc.push({
+      name: document.querySelector(`.pc-name[data-i="${i}"]`)?.value || '',
+      level: document.querySelector(`.pc-level[data-i="${i}"]`)?.value || '',
+      hp: document.querySelector(`.pc-hp[data-i="${i}"]`)?.value || '',
+    });
+  }
+  return {
+    trainerName: document.getElementById('trainer-name').value,
+    trainerAge: document.getElementById('trainer-age').value,
+    trainerHistory: document.getElementById('trainer-history').value,
+    trainerImg: document.getElementById('trainer-img').src,
+    team,
+    skills,
+    pc,
+  };
+}
+
+function populateSheet(data) {
+  if (!data) return;
+  document.getElementById('trainer-name').value = data.trainerName || '';
+  document.getElementById('trainer-age').value = data.trainerAge || '';
+  document.getElementById('trainer-history').value = data.trainerHistory || '';
+  if (data.trainerImg) document.getElementById('trainer-img').src = data.trainerImg;
+
+  (data.team || []).forEach((t, i) => {
+    const nameEl = document.querySelector(`.team-name[data-i="${i}"]`);
+    if (nameEl) {
+      nameEl.value = t.name;
+    }
+    const lvEl = document.querySelector(`.team-level[data-i="${i}"]`);
+    if (lvEl) lvEl.value = t.level;
+    const hpEl = document.querySelector(`.team-hp[data-i="${i}"]`);
+    if (hpEl) hpEl.value = t.hp;
+  });
+
+  (data.skills || []).forEach((pSkills, p) => {
+    pSkills.forEach((val, s) => {
+      const el = document.querySelector(`.skill-input[data-p="${p}"][data-s="${s}"]`);
+      if (el) el.value = val;
+    });
+  });
+
+  (data.pc || []).forEach((t, i) => {
+    const nameEl = document.querySelector(`.pc-name[data-i="${i}"]`);
+    if (nameEl) nameEl.value = t.name;
+    const lvEl = document.querySelector(`.pc-level[data-i="${i}"]`);
+    if (lvEl) lvEl.value = t.level;
+    const hpEl = document.querySelector(`.pc-hp[data-i="${i}"]`);
+    if (hpEl) hpEl.value = t.hp;
+  });
+}
+
+function loadSheet(username) {
+  const data = allData[username];
+  populateSheet(data);
+}
+
+function clearSheet() {
+  document.getElementById('trainer-name').value = '';
+  document.getElementById('trainer-age').value = '';
+  document.getElementById('trainer-history').value = '';
+  document.getElementById('trainer-img').src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='210' viewBox='0 0 300 210'%3E%3Crect width='300' height='210' fill='%231a1a2e'/%3E%3Ccircle cx='150' cy='70' r='30' fill='%23666'/%3E%3Cellipse cx='150' cy='155' rx='50' ry='60' fill='%23555'/%3E%3Ctext x='150' y='200' text-anchor='middle' fill='%23888' font-size='11' font-family='Arial'%3EClique para trocar imagem%3C/text%3E%3C/svg%3E";
+  document.querySelectorAll('#trainer-sheet input, #trainer-sheet textarea').forEach(el => el.value = '');
+}
+
+async function saveSheet(silent = false) {
+  if (!currentUser) return;
+  allData[currentUser] = getSheetData();
+  await jsonbinSave(allData);
+  renderUserChips();
+  if (!silent) {
+    showToast('✅ Ficha salva na nuvem!');
+    const status = document.getElementById('save-status');
+    status.style.display = 'flex';
+    setTimeout(() => status.style.display = 'none', 2500);
+  }
+}
+
+async function newSheet() {
+  await saveSheet(true);
+  clearSheet();
+  showToast('📄 Nova ficha criada!');
+}
+
+function renderUserChips() {
+  const container = document.getElementById('users-chips');
+  container.innerHTML = '';
+  const users = Object.keys(allData);
+  if (users.length === 0) {
+    container.innerHTML = '<span style="font-size:12px;color:#aaa;">Nenhuma ficha salva ainda</span>';
+    return;
+  }
+  users.forEach(u => {
+    const wrap = document.createElement('div');
+    wrap.className = 'user-chip-wrap' + (u === currentUser ? ' active' : '');
+
+    const chip = document.createElement('div');
+    chip.className = 'user-chip' + (u === currentUser ? ' active' : '');
+    chip.textContent = u;
+    chip.onclick = () => {
+      saveSheet(true);
+      currentUser = u;
+      document.getElementById('header-username').textContent = '👤 ' + u;
+      loadSheet(u);
+      renderUserChips();
+    };
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'chip-delete';
+    delBtn.innerHTML = '×';
+    delBtn.title = 'Deletar ficha de ' + u;
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      openDeleteModal(u);
+    };
+
+    wrap.appendChild(chip);
+    wrap.appendChild(delBtn);
+    container.appendChild(wrap);
+  });
+}
+
+let userToDelete = null;
+
+function openDeleteModal(username) {
+  userToDelete = username;
+  document.getElementById('modal-username').textContent = username;
+  document.getElementById('delete-modal').classList.add('show');
+}
+
+function closeDeleteModal() {
+  userToDelete = null;
+  document.getElementById('delete-modal').classList.remove('show');
+}
+
+async function confirmDelete() {
+  if (!userToDelete) return;
+  const wasActive = (userToDelete === currentUser);
+  delete allData[userToDelete];
+  await jsonbinSave(allData);
+  closeDeleteModal();
+  showToast(`🗑️ Ficha de ${userToDelete} deletada.`);
+  userToDelete = null;
+
+  if (wasActive) {
+    const remaining = Object.keys(allData);
+    if (remaining.length > 0) {
+      currentUser = remaining[0];
+      document.getElementById('header-username').textContent = '👤 ' + currentUser;
+      loadSheet(currentUser);
+    } else {
+      clearSheet();
+    }
+  }
+  renderUserChips();
+}
+
+// Close modal on overlay click
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+
+// ===== IMAGE CHANGE =====
+function changeImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('trainer-img').src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== EXPORT PDF =====
+async function exportPDF() {
+  showToast('⏳ Gerando PDF...');
+  const sheet = document.getElementById('trainer-sheet');
+
+  // Temporarily hide overlays
+  document.querySelectorAll('.img-overlay').forEach(el => el.style.opacity = '0');
+
+  try {
+    const canvas = await html2canvas(sheet, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#f5f7ff',
+      logging: false,
+    });
+
+    const { jsPDF } = window.jspdf;
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+    const pdfW = 297; // A4 landscape width mm
+    const pdfH = 210; // A4 landscape height mm
+
+    const canvasRatio = canvas.width / canvas.height;
+    const pdfRatio = pdfW / pdfH;
+
+    let imgW = pdfW - 10;
+    let imgH = imgW / canvasRatio;
+
+    if (imgH > pdfH - 10) {
+      imgH = pdfH - 10;
+      imgW = imgH * canvasRatio;
+    }
+
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    pdf.addImage(imgData, 'JPEG', (pdfW - imgW) / 2, (pdfH - imgH) / 2, imgW, imgH);
+
+    const trainerName = document.getElementById('trainer-name').value || currentUser || 'treinador';
+    pdf.save(`ficha-${trainerName.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+    showToast('✅ PDF exportado!');
+  } catch(e) {
+    showToast('❌ Erro ao gerar PDF. Tente novamente.', true);
+    console.error(e);
+  }
+}
+
+// ===== TOAST =====
+function showToast(msg, error = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (error ? ' error' : '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
