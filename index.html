@@ -937,82 +937,43 @@
 // ===== JSONBIN CONFIG =====
 const JSONBIN_API_KEY = '$2a$10$L2l9q0oFD3CwSvsqi9niu.h9U9Eym7P49X9Zz49wCEqtZwgMwg1jS';
 const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
-// Após o primeiro login, um ID será criado e exibido no console (F12).
-// Cole esse ID aqui para que TODOS os amigos usem o mesmo banco de dados:
-let BIN_ID_FIXO = '';
+const BIN_ID = '69bdd012c3097a1dd5445ed4';
 
 // ===== STATE =====
 let currentUser = null;
 let allData = {};
-let binId = null;
 
 // ===== JSONBIN HELPERS =====
 async function jsonbinLoad() {
-  if (BIN_ID_FIXO) {
-    binId = BIN_ID_FIXO;
-    localStorage.setItem('poke-bin-id', binId);
-  } else {
-    const stored = localStorage.getItem('poke-bin-id');
-    if (stored) binId = stored;
-  }
-
-  if (binId) {
-    try {
-      const res = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, {
-        headers: {
-          'X-Master-Key': JSONBIN_API_KEY,
-          'X-Bin-Meta': 'false'
-        }
-      });
-      if (res.ok) {
-        const json = await res.json();
-        return (typeof json === 'object' && json !== null) ? json : {};
-      }
-    } catch(e) {}
-  }
-
-  return await jsonbinCreate();
-}
-
-async function jsonbinCreate() {
   try {
-    const res = await fetch(`${JSONBIN_BASE}/b`, {
-      method: 'POST',
+    const res = await fetch(`${JSONBIN_BASE}/b/${BIN_ID}/latest`, {
       headers: {
-        'Content-Type': 'application/json',
         'X-Master-Key': JSONBIN_API_KEY,
-        'X-Bin-Name': 'poke-esferas',
-        'X-Bin-Private': 'false'
-      },
-      body: JSON.stringify({})
+        'X-Bin-Meta': 'false'
+      }
     });
-    if (!res.ok) throw new Error('Erro ' + res.status);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
-    binId = json.metadata.id;
-    localStorage.setItem('poke-bin-id', binId);
-    console.log('%c✅ Bin criado com sucesso! Copie o ID abaixo e cole em BIN_ID_FIXO no código:', 'color:green;font-weight:bold;font-size:14px');
-    console.log('%c' + binId, 'color:#e53935;font-size:18px;font-weight:bold');
-    showToast('☁️ Banco criado! Veja o console (F12) para o ID.');
-    return {};
+    // Suporta tanto { trainers: {} } quanto {} direto
+    return json.trainers || json || {};
   } catch(e) {
-    console.error('JSONBin create error:', e);
-    showToast('❌ Erro ao conectar com o servidor.', true);
+    console.error('JSONBin load error:', e);
+    showToast('❌ Erro ao carregar dados do servidor.', true);
     return {};
   }
 }
 
 async function jsonbinSave(data) {
-  if (!binId) return;
   try {
-    const res = await fetch(`${JSONBIN_BASE}/b/${binId}`, {
+    const res = await fetch(`${JSONBIN_BASE}/b/${BIN_ID}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'X-Master-Key': JSONBIN_API_KEY
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify({ trainers: data })
     });
-    if (!res.ok) throw new Error('Erro ' + res.status);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
   } catch(e) {
     console.error('JSONBin save error:', e);
     showToast('❌ Erro ao salvar na nuvem.', true);
